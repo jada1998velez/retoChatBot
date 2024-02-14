@@ -1,6 +1,7 @@
 import openai
 import streamlit as st
 import pdf_gpt
+import PyMuPDF
 from pinecone import Pinecone, ServerlessSpec
 import os
 from io import BytesIO
