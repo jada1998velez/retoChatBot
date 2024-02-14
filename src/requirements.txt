@@ -7,4 +7,4 @@ langchain
 langchain-community
 pdfplumber
 fitz
-pymupdf
+pymupdf==1.18.17
