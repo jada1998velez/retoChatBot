@@ -58,7 +58,7 @@ else:
     else:
         response  = openai.ChatCompletion.create(
           engine="gepeto",
-          messages = message_text,
+          messages = responseMessage,
           temperature=0.7,
           max_tokens=800,
           top_p=0.95,
