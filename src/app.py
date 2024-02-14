@@ -4,65 +4,48 @@ import pdf_gpt
 from pinecone import Pinecone, ServerlessSpec
 import os
 from io import BytesIO
+from transformers import BertTokenizer, BertModel
+import PyMuPDF
 
-PINECONE_API_KEY = st.secrets["PINECONE_API_KEY_V2"]
-PINECONE_ENV = st.secrets["PINECONE_ENV"]
-PINECONE_INDEX_NAME = st.secrets["PINECONE_INDEX_NAME"]
+# Cargar modelo BERT preentrenado y tokenizador
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = BertModel.from_pretrained('bert-base-uncased')
 
-api_key = st.secrets["OPENAI_API_KEY"]
-api_base = st.secrets["OPENAI_API_BASE"]
-api_version = st.secrets["OPENAI_API_VERSION"]
-api_type = st.secrets["OPENAI_API_TYPE"]
+# Función para procesar el PDF
+def process_pdf(file):
+    pdf_document = PyMuPDF.PdfReader(file)
+    pdf_text = [page.extract_text() for page in pdf_document.pages]
+    
+    paragraph_vectors = []
+    for paragraph in pdf_text:
+        tokens = tokenizer(paragraph, return_tensors='pt')
+        with torch.no_grad():
+            outputs = model(**tokens)
+        paragraph_vector = outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
+        paragraph_vectors.append(paragraph_vector)
 
-openai.api_key = api_key
-openai.api_base = api_base
-openai.api_version = api_version
-openai.api_type = api_type
+    return paragraph_vectors
 
-EMBEDDING_MODEL = "text-embedding-ada-002"
-GPT_EMBEDDING_ENGINE = 'mondongodb'
-DIMENSION = 1536
-GPT_MODEL = 'gpt-3.5-turbo-16k'
-GPT_CHAT_ENGINE = "gepeto"
+# Configuración de la aplicación Streamlit
+st.title("PDF to Pinecone")
 
-st.title("Chatbot")
-is_pdf_chatbot = st.checkbox("PDF chatbot")
-uploaded_file = st.file_uploader("Sube tu archivo PDF", type="pdf")
-
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "Hola, soy ChatGPT, ¿En qué puedo ayudarte?"}]
-
-for msg in st.session_state["messages"]:
-    st.chat_message(msg["role"]).write(msg["content"])
+uploaded_file = st.file_uploader("Cargar archivo PDF", type=["pdf"])
 
 if uploaded_file is not None:
-    pdf_bytes = uploaded_file.read()
-    pdf_file = BytesIO(pdf_bytes)
-    # Sube el archivo a Pinecone
-    pinecone = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-    index = pinecone.index("fp-incompany-index")
-    index.upsert(ids=[uploaded_file.name], embeddings=[pdf_bytes])
-    st.success("¡Archivo PDF subido a Pinecone exitosamente!")
-    pdf_file.close()
+    st.write("Archivo cargado con éxito!")
 
-if user_input := st.chat_input():
-    st.session_state["messages"].append({"role": "user", "content": user_input})
-    st.chat_message("user").write(user_input)
+    # Procesar el PDF
+    vectors = process_pdf(uploaded_file)
 
-    # Recupera el archivo desde Pinecone
-    embeddings = index.query(queries=[user_input], top_k=1)
-    if embeddings:
-        pdf_bytes = embeddings[0]["embedding"]
-        # Procesa el archivo PDF y realiza la conversación con OpenAI
-        docsearch = pdf_gpt.process_pdf(BytesIO(pdf_bytes), api_key, PINECONE_API_KEY, PINECONE_ENV, PINECONE_INDEX_NAME, DIMENSION)
-        response = openai.ChatCompletion.create(
-            model=GPT_MODEL,
-            messages=st.session_state["messages"],
-            engine=GPT_CHAT_ENGINE,
-            max_tokens=DIMENSION
-        )
-        responseMessage = response['choices'][0]['message']['content']
-        st.session_state["messages"].append({"role": "assistant", "content": responseMessage})
-        st.chat_message("assistant").write(responseMessage)
-    else:
-        st.warning("No se encontraron documentos relacionados en Pinecone.")
+    # Aquí podrías enviar `vectors` a Pinecone o realizar otras operaciones según tus necesidades
+
+    st.write("Vectores generados:")
+    st.write(vectors)
+
+
+
+
+
+
+
+
