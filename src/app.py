@@ -56,16 +56,16 @@ else:
     if is_pdf_chatbot and uploaded_file is not None:
       responseMessage = pdf_gpt.get_answer(docsearch,user_input,api_key)
     else:
-    response  = openai.ChatCompletion.create(
-      engine="gepeto",
-      messages = message_text,
-      temperature=0.7,
-      max_tokens=800,
-      top_p=0.95,
-      frequency_penalty=0,
-      presence_penalty=0,
-      stop=None
-    )
+        response  = openai.ChatCompletion.create(
+          engine="gepeto",
+          messages = message_text,
+          temperature=0.7,
+          max_tokens=800,
+          top_p=0.95,
+          frequency_penalty=0,
+          presence_penalty=0,
+          stop=None
+        )
       responseMessage = response['choices'][0]['message']['content']
       st.session_state["messages"].append({"role": "assistant", "content": responseMessage})
       st.chat_message("assistant").write(responseMessage)
