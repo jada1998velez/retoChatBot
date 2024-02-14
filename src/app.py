@@ -1,52 +1,29 @@
-import openai
 import streamlit as st
-import pdf_gpt
-import fitz #pymupdf
-from pinecone import Pinecone, ServerlessSpec
-import os
-from io import BytesIO
-from transformers import BertTokenizer, BertModel
+import fitz  # PyMuPDF
 
+def leer_pdf(archivo_pdf):
+    doc = fitz.open(archivo_pdf)
+    num_paginas = doc.page_count
 
-# Cargar modelo BERT preentrenado y tokenizador
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-model = BertModel.from_pretrained('bert-base-uncased')
+    st.sidebar.title("Seleccionar Página")
+    pagina_seleccionada = st.sidebar.slider("Selecciona una página", 1, num_paginas, 1)
 
-# Función para procesar el PDF
-def process_pdf(file):
-    pdf_document = fitz.open(archivo_pdf)
-    pdf_text = [page.extract_text() for page in pdf_document.pages]
-    
-    paragraph_vectors = []
-    for paragraph in pdf_text:
-        tokens = tokenizer(paragraph, return_tensors='pt')
-        with torch.no_grad():
-            outputs = model(**tokens)
-        paragraph_vector = outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
-        paragraph_vectors.append(paragraph_vector)
+    pagina = doc.load_page(pagina_seleccionada - 1)
+    texto = pagina.get_text("text")
 
-    return paragraph_vectors
+    st.title(f"Página {pagina_seleccionada}")
+    st.write(texto)
 
-# Configuración de la aplicación Streamlit
-st.title("PDF to Pinecone")
+    doc.close()
 
-uploaded_file = st.file_uploader("Cargar archivo PDF", type=["pdf"])
+def main():
+    st.title("Lector de PDF en Streamlit")
 
-if uploaded_file is not None:
-    st.write("Archivo cargado con éxito!")
+    uploaded_file = st.file_uploader("Subir un archivo PDF", type=["pdf"])
 
-    # Procesar el PDF
-    vectors = process_pdf(uploaded_file)
+    if uploaded_file is not None:
+        st.success("Archivo cargado correctamente.")
+        leer_pdf(uploaded_file)
 
-    # Aquí podrías enviar `vectors` a Pinecone o realizar otras operaciones según tus necesidades
-
-    st.write("Vectores generados:")
-    st.write(vectors)
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    main()
