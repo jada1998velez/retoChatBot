@@ -1,7 +1,6 @@
 import openai
 import streamlit as st
 import pdf_gpt
-import pymupdf
 import fitz 
 from pinecone import Pinecone, ServerlessSpec
 import os
@@ -15,7 +14,7 @@ model = BertModel.from_pretrained('bert-base-uncased')
 
 # Función para procesar el PDF
 def process_pdf(file):
-    pdf_document = PyMuPDF.PdfReader(file)
+    pdf_document = fitz.open(archivo_pdf)
     pdf_text = [page.extract_text() for page in pdf_document.pages]
     
     paragraph_vectors = []
