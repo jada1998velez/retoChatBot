@@ -40,7 +40,7 @@ if uploaded_file is not None:
     pdf_file = BytesIO(pdf_bytes)
     # Sube el archivo a Pinecone
     pinecone = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
-    index = pinecone.index(PINECONE_INDEX_NAME)
+    index = pinecone.index("fp-incompany-index")
     index.upsert(ids=[uploaded_file.name], embeddings=[pdf_bytes])
     st.success("¡Archivo PDF subido a Pinecone exitosamente!")
     pdf_file.close()
