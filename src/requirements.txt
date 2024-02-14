@@ -6,3 +6,4 @@ pinecone-client
 langchain
 langchain-community
 pdfplumber
+PyMuPDF
