@@ -66,9 +66,9 @@ else:
           presence_penalty=0,
           stop=None
         )
-    responseMessage = response['choices'][0]['message']['content']
-      st.session_state["messages"].append({"role": "assistant", "content": responseMessage})
-      st.chat_message("assistant").write(responseMessage)
+        responseMessage = response['choices'][0]['message']['content']
+        st.session_state["messages"].append({"role": "assistant", "content": responseMessage})
+        st.chat_message("assistant").write(responseMessage)
   
 
  
