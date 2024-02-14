@@ -5,7 +5,7 @@ from pinecone import Pinecone, ServerlessSpec
 import os
 from io import BytesIO
 from transformers import BertTokenizer, BertModel
-import PyMuPDF
+
 
 # Cargar modelo BERT preentrenado y tokenizador
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
